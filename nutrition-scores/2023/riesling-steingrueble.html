@@ -10,6 +10,7 @@
             font-family: Arial, sans-serif;
             padding: 20px;
             text-align: center;
+            font-size: 20px;
         }
         h1 {
             margin-bottom: 20px;
@@ -32,23 +33,29 @@
             background-color: white;
             color: black;
         }
-        .impressum {
-            text-align: left;
-            padding: 20px 0;
+        .text-below-table {
+            text-align: justify;
         }
         .main {
-            width: 40%;
+            width: 80%;
+            max-width: 400px;
             margin: 20px auto;
             text-align: left;
         }
         @media screen and (max-width: 1300px) {
             .main {
-                width: 60%;
+                max-width: 600px;
+            }
+            body {
+                font-size: 26px;
             }
         }
-        @media screen and (max-width: 892px) {
+        @media screen and (max-width: 1000px) {
             .main {
-                width: 80%;
+                max-width: 800px;
+            }
+            body {
+                font-size: 34px;
             }
         }
     </style>
@@ -56,18 +63,18 @@
 <body>
 
 <h1>Nährwerttabelle</h1>
-<h2>Württemberg Riesling 2023,</h2>
+<h2>Württemberg Riesling 2023</h2>
 
 <div class="main">
 
 
-    <div class="wine-info">
-        <p>Abfüller: Weingut Wolfstrumpf,<br />
-            D-71384 Weinstadt A.P.Nr. XXXX XX XX<br />
-            Deutscher Qualitätswein<br />
-            12%vol<br />
-            750ml</p>
-    </div>
+    <p class="text">
+        Abfüller: Weingut Wolfstrumpf,<br />
+        D-71384 Weinstadt A.P.Nr. XXXX XX XX<br />
+        Deutscher Qualitätswein<br />
+        12% vol<br />
+        750ml
+    </p>
 
     <table>
         <tr class="first-row">
@@ -90,16 +97,12 @@
         </tr>
     </table>
 
-    <p class="text-below-table">
-        Zutatenverzeichnis: Trauben, Zucker<br />
-        Stabilisatoren: Metaweinsäure<br />
-        Antioxidantien: <b>Sulfite</b>
+    <p class="text-below-table"> Zutatenverzeichnis: Trauben, Zucker, Stabilisatoren: Metaweinsäure, Antioxidantien: <b>Sulfite</b>
     </p>
 
-    <div class="impressum">
-        <p>Impressum:</p>
-        <p>Weingut Wolfstrumpf, Max Mustermann, Mohnweg 80, D-71384</p>
-    </div>
+    <p class="text-below-table">
+        Impressum: Weingut Wolfstrumpf, Max Mustermann, Mohnweg 80, D-71384</p>
+    </p>
 
 </div>
 
