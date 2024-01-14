@@ -15,9 +15,9 @@
             margin-bottom: 20px;
         }
         table {
-            width: 60%;
-            margin: 20px auto;
+            width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid white;
@@ -28,40 +28,80 @@
             background-color: #333;
             color: white;
         }
-        .text-below-table {
-            width: 60%;
+        .first-row {
+            background-color: white;
+            color: black;
+        }
+        .impressum {
+            text-align: left;
+            padding: 20px 0;
+        }
+        .main {
+            width: 40%;
             margin: 20px auto;
             text-align: left;
+        }
+        @media screen and (max-width: 1300px) {
+            .main {
+                width: 60%;
+            }
+        }
+        @media screen and (max-width: 892px) {
+            .main {
+                width: 80%;
+            }
         }
     </style>
 </head>
 <body>
 
 <h1>Nährwerttabelle</h1>
+<h2>Württemberg Riesling 2023,</h2>
 
-<table>
-    <tr>
-        <td colspan="2">100 ml enthalten durchschnittlich</td>
-    </tr>
-    <tr>
-        <td>Brennwert</td>
-        <td>306 kJ (73 kcal)</td>
-    </tr>
-    <tr>
-        <td>Kohlenhydrate</td>
-        <td>1,6 g</td>
-    </tr>
-    <tr>
-        <td>davon Zucker</td>
-        <td>0,6 g</td>
-    </tr>
-    <tr>
-        <td colspan="2">Enthält geringfügige Mengen von Fett, gesättigten Fettsäuren, Eiweiß und Salze</td>
-    </tr>
-</table>
+<div class="main">
 
-<p class="text-below-table">Zutatenverzeichnis: Trauben, Zucker</p>
-<p class="text-below-table">Stabilisatoren: Metaweinsäure, Antioxidantien, Sulfite</p>
+
+    <div class="wine-info">
+        <p>Abfüller: Weingut Wolfstrumpf,<br />
+            D-71384 Weinstadt A.P.Nr. XXXX XX XX<br />
+            Deutscher Qualitätswein<br />
+            12%vol<br />
+            750ml</p>
+    </div>
+
+    <table>
+        <tr class="first-row">
+            <td colspan="2">100 ml enthalten durchschnittlich</td>
+        </tr>
+        <tr>
+            <td>Brennwert</td>
+            <td>306 kJ (73 kcal)</td>
+        </tr>
+        <tr>
+            <td>Kohlenhydrate</td>
+            <td>1,6 g</td>
+        </tr>
+        <tr>
+            <td>davon Zucker</td>
+            <td>0,6 g</td>
+        </tr>
+        <tr>
+            <td colspan="2">Enthält geringfügige Mengen von Fett, gesättigten Fettsäuren, Eiweiß und Salze</td>
+        </tr>
+    </table>
+
+    <p class="text-below-table">
+        Zutatenverzeichnis: Trauben, Zucker<br />
+        Stabilisatoren: Metaweinsäure<br />
+        Antioxidantien: <b>Sulfite</b>
+    </p>
+
+    <div class="impressum">
+        <p>Impressum:</p>
+        <p>Weingut Wolfstrumpf, Max Mustermann, Mohnweg 80, D-71384</p>
+    </div>
+
+</div>
 
 </body>
 </html>
