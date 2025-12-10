@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hondert kalde wender</title>
+    <title>hondertkaldewender</title>
 
     <link rel="icon" type="image/svg+xml" href="logo_blue.svg">
 
@@ -452,7 +452,7 @@
 <div class="container">
 
     <header>
-        <h1>hondert kalde wender</h1>
+        <h1>hondertkaldewender</h1>
         <p>100 Jahre Skizunft Endersbach</p>
     </header>
 
@@ -664,8 +664,6 @@
     if (e.target === lightbox) lightbox.style.display = "none";
   });
 
-  /* Schnee-System — unverändert */
-
   const snowCanvas = document.getElementById("snowCanvas");
   const groundCanvas = document.getElementById("groundCanvas");
   const sctx = snowCanvas.getContext("2d");
@@ -719,7 +717,7 @@
   function updateFlakes() {
 
     flakes.forEach(f => {
-      f.y += f.speed * f.size * 0.9;
+      f.y += f.speed * f.size * 0.7;
 
       let idx = Math.floor(f.x / snowCanvas.width * GROUND_POINTS);
       let g = ground[idx] || 0;
@@ -739,7 +737,7 @@
 
     let highest = Math.max(...ground);
 
-    if (highest >= groundCanvas.height * 0.46) {
+    if (highest >= groundCanvas.height * 0.80) {
       snowLevel = 1;
       updateName();
     }
@@ -777,10 +775,16 @@
       spawnFlakes();
       frameCounter = 0;
     }
-    if (drawToggle % 2 === 0) {
+
+    // Only update and draw every second frame for performance
+    if (drawToggle > 2) {
       updateFlakes();
       drawFlakes();
-        drawGround();   // nur jedes 2. Frame
+    }
+
+    if (drawToggle > 6) {
+      drawGround();
+      drawToggle = 0;
     }
     requestAnimationFrame(loop);
   }
