@@ -1,17 +1,889 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hondert kalde wender</title>
+
+    <link rel="icon" type="image/svg+xml" href="logo_blue.svg">
+
+    <style>
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: rgb(2, 69, 141);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Hintergrund-Logo */
+        #bgLogo {
+            position: fixed;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vmin;
+            height: 80vmin;
+            background: url('logo_white_with_outline.svg') center/contain no-repeat;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Dezente linke Timeline fixiert */
+        #timeline-wrapper {
+            position: fixed;
+            top: 120px;
+            left: 20px; /* nah am Rand */
+            width: 40px;
+            height: calc(100vh - 150px);
+
+            background: rgba(0, 0, 0, 0.5); /* wie .gallery !!! */
+            border-radius: 10px; /* wie .gallery */
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px); /* leichte Glass-Optik */
+
+            overflow-y: auto; /* scrollbar falls nötig */
+            padding: 10px;
+            z-index: 70;
+        }
+
+        /* Vertikale Liste */
+        #timeline {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        /* Dezente Jahres-Buttons */
+        .year-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7); /* dezenter weiß-Ton */
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.15s ease;
+            text-align: left;
+            padding: 4px 0;
+        }
+
+        /* Hover: leicht gelb */
+        .year-btn:hover {
+            color: rgb(255, 212, 1);
+            transform: translateX(3px);
+        }
+
+        /* Aktives Jahrzehnt beim Scrollen */
+        .year-btn.active {
+            color: rgb(255, 212, 1);
+        }
+
+        /* Hauptinhalt – nach rechts vergrößert */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 90px; /* Platz links für Zeitleiste */
+            padding-right: 20px;
+            padding-top: 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Gesamter Regler */
+        #controls {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 99;
+            width: auto;
+        }
+
+        /* Toggle-Button — minimierter Zustand */
+        #controls-toggle {
+            background: rgb(255, 212, 1);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+            display: block;
+            margin-left: auto;
+        }
+
+        /* Minimiert: sehr klein */
+        #controls-toggle.collapsed {
+            width: 110px; /* sehr schmal */
+            padding: 6px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Wenn aufgeklappt → großer Button oben über dem Inhalt */
+        #controls.open #controls-toggle {
+            width: 230px; /* volle Breite wie Regler */
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* Regler-Content */
+        #controls-content {
+            display: none;
+            width: 230px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Sichtbar wenn geöffnet */
+        #controls.open #controls-content {
+            display: block;
+        }
+
+        /* Minus / Plus Buttons */
+        #ctrl-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #ctrl-row button {
+            background: rgb(255, 212, 1);
+            border: none;
+            padding: 8px 12px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #clearSnow {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            background: rgb(255, 212, 1);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #ctrl-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #ctrl-row button {
+            background: rgb(255, 212, 1);
+            border: none;
+            padding: 8px 12px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #snow-mode-name {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: black;
+        }
+
+        #clearSnow {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            background: rgb(255, 212, 1);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Canvas */
+        #snowCanvas, #groundCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #snowCanvas {
+            z-index: 3;
+        }
+
+        #groundCanvas {
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: rgb(255, 212, 1);
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        nav a {
+            color: black;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .section {
+            padding: 20px 0;
+        }
+
+        /* Galerie */
+        .gallery {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px); /* leichte Glass-Optik */
+            border-radius: 10px; /* wie .gallery */
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+            overflow-x: auto; /* optional – funktioniert weiter */
+        }
+
+        /* Bilder */
+        .gallery img {
+            height: 150px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .gallery img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Hochkant-Beschriftung */
+        .gallery-label {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            background: rgba(0, 0, 0, 0.5); /* SELBER Kasten wie Galerie! */
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            height: 150px; /* exakt wie Bildhöhe */
+            padding: 10px 6px; /* schöner Look */
+            border-radius: 10px 0 0 10px; /* links abgerundet */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0; /* verhindert Zusammenschrumpfen */
+            margin-right: 10px; /* Abstand zum ersten Bild */
+        }
+
+        /* Lightbox mit Navigation */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 80%;
+        }
+
+        .nav-btn-lightbox {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.7);
+            padding: 18px;
+            font-size: 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #prev-img {
+            left: 30px;
+        }
+
+        #next-img {
+            right: 30px;
+        }
+
+        /* SPA-Seiten: immer nur eine sichtbar */
+        .spa-page {
+            display: none;
+        }
+
+        .spa-page.active {
+            display: block;
+        }
+
+        /* SPA Navigation */
+        #main-nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+
+            position: sticky;
+            top: 0;
+            z-index: 40;
+
+            background: rgba(0, 0, 0, 0.25); /* sehr dezent, halbtransparent */
+            backdrop-filter: blur(2px); /* leichte Glass-Optik */
+            padding: 8px 10px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px; /* wie .gallery */
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Buttons */
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.15); /* nur leicht sichtbar */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+
+            cursor: pointer;
+            transition: background 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.15s ease;
+        }
+
+        /* Hover */
+        .nav-btn:hover {
+            background: rgba(255, 212, 1, 0.25);
+            border-color: rgba(255, 212, 1, 0.6);
+            transform: translateY(-1px);
+        }
+
+        /* Aktive Seite */
+        .nav-btn.active {
+            background: rgba(255, 212, 1, 0.35);
+            border-color: rgb(255, 212, 1);
+            color: rgb(2, 69, 141);
+        }
+
+        /* Programmseite */
+        .page-section {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px); /* leichte Glass-Optik */
+            border-radius: 10px; /* wie .gallery */
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .page-section h3 {
+            margin-top: 20px;
+            color: rgb(255, 212, 1);
+        }
+
+    </style>
+</head>
+
 <body>
 
-<h1>The canvas element</h1>
+<!-- LOGO -->
+<div id="bgLogo"></div>
 
-<canvas id="myCanvas">Your browser does not support the canvas tag.</canvas>
+<!-- SCHNEE -->
+
+<canvas id="snowCanvas"></canvas>
+<canvas id="groundCanvas"></canvas>
+
+<div id="controls">
+
+    <button id="controls-toggle" class="collapsed">▼ Schneeregler</button>
+
+    <div id="controls-content">
+        <div id="ctrl-row">
+            <button id="minus">−</button>
+            <span id="snow-mode-name">A kleis Schneele</span>
+            <button id="plus">+</button>
+        </div>
+        <button id="clearSnow">Schnee schippen</button>
+    </div>
+
+</div>
+
+<!-- INHALT -->
+<div class="container">
+
+    <header>
+        <h1>hondert kalde wender</h1>
+        <p>100 Jahre Skizunft Endersbach</p>
+    </header>
+
+    <nav id="main-nav">
+        <button class="nav-btn active" data-page="page-gallery">Galerie</button>
+        <button class="nav-btn" data-page="page-programm">Programm</button>
+        <button class="nav-btn" data-page="page-game">Spiel</button>
+    </nav>
+
+    <section id="page-gallery" class="spa-page active">
+
+        <div id="timeline-wrapper">
+            <div id="timeline">
+                <button class="year-btn" data-target="2020">2020</button>
+                <button class="year-btn" data-target="2010">2010</button>
+                <button class="year-btn" data-target="2000">2000</button>
+                <button class="year-btn" data-target="1990">1990</button>
+                <button class="year-btn" data-target="1980">1980</button>
+                <button class="year-btn" data-target="1970">1970</button>
+                <button class="year-btn" data-target="1960">1960</button>
+                <button class="year-btn" data-target="1950">1950</button>
+                <button class="year-btn" data-target="1940">1940</button>
+                <button class="year-btn" data-target="1930">1930</button>
+                <button class="year-btn" data-target="1920">1920</button>
+            </div>
+        </div>
+
+        <div id="2020" class="section">
+            <div class="gallery">
+                <div class="gallery-label">2020er</div>
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F711.jpg?generation=1707148012587254&alt=media">
+            </div>
+        </div>
+
+        <div id="2010" class="section">
+            <div class="gallery">
+                <div class="gallery-label">2010er</div>
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F445.jpg?generation=1607795352676958&alt=media">
+            </div>
+        </div>
+
+        <div id="2000" class="section">
+            <div class="gallery">
+                <div class="gallery-label">2000er</div>
+            </div>
+        </div>
+
+        <div id="1990" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1990er</div>
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F13.jpg?generation=1607795304956142&alt=media">
+            </div>
+        </div>
+
+        <div id="1980" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1980er</div>
+            </div>
+        </div>
+
+        <div id="1970" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1970er</div>
+            </div>
+        </div>
+
+        <div id="1960" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1960er</div>
+            </div>
+        </div>
+
+        <div id="1950" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1950er</div>
+            </div>
+        </div>
+
+        <div id="1940" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1940er</div>
+            </div>
+        </div>
+
+        <div id="1930" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1930er</div>
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F18.jpg?generation=1607795310447440&alt=media">
+            </div>
+        </div>
+
+        <div id="1920" class="section">
+            <div class="gallery">
+                <div class="gallery-label">1920er</div>
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F50.jpg?generation=1607795361610007&alt=media">
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F715.jpg?generation=1707148020291386&alt=media">
+                <img loading="lazy"
+                     src="https://storage.googleapis.com/download/storage/v1/b/ssv-public-assets/o/ssvend%2Freq%2Fimages%2Fgallery%2F716.jpg?generation=1707148022563667&alt=media">
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- PAGE 2 : PROGRAMM -->
+    <section id="page-programm" class="spa-page">
+        <div class="page-section">
+            <h2>Jubiläumsprogramm</h2>
+
+            <h3>Freitag – Eröffnung</h3>
+            <ul>
+                <li>18:00 – Sektempfang</li>
+                <li>19:00 – Auftakt & Begrüßung</li>
+                <li>21:00 – Bilderjahrzehnte-Show</li>
+            </ul>
+
+            <h3>Samstag – Skitag</h3>
+            <ul>
+                <li>10:00 – Kinder-Skirennen</li>
+                <li>13:00 – Familienspiele im Schnee</li>
+                <li>20:00 – Festabend</li>
+            </ul>
+
+            <h3>Sonntag – Abschluss</h3>
+            <ul>
+                <li>09:00 – Gemeinsames Frühstück</li>
+                <li>11:00 – Winterwanderung</li>
+                <li>14:00 – Abschlussrede & Ausklang</li>
+            </ul>
+        </div>
+    </section>
+
+
+    <!-- PAGE 3 : SPIEL -->
+    <section id="page-game" class="spa-page">
+        <div class="page-section">
+            <h2>Ski‑Slalom Spiel</h2>
+            <div class="game-placeholder">
+                <p>Hier entsteht ein Retro Ski‑Slalom Spiel.</p>
+                <p>(Platzhalter)</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+    <button id="prev-img" class="nav-btn-lightbox">←</button>
+    <img id="lightbox-img">
+    <button id="next-img" class="nav-btn-lightbox">→</button>
+</div>
 
 <script>
-var c = document.getElementById("myCanvas");
-var ctx = c.getContext("2d");
-ctx.fillStyle = "#FF0000";
-ctx.fillRect(0, 0, 80, 100);
-</script>
 
+  /* Scroll zu Jahresabschnitt */
+  function scrollToYear(yearId) {
+    const el = document.getElementById(yearId);
+    if (el) {
+      window.scrollTo({top: el.offsetTop - 150, behavior: "smooth"});
+    }
+  }
+
+  /* Timeline progress */
+  const timelineProgress = document.getElementById("timeline-progress");
+  window.addEventListener("scroll", () => {
+    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let scrolled = window.scrollY / docHeight;
+    timelineProgress.style.height = (scrolled * 100) + "%";
+  });
+
+  /* Lightbox + Navigation */
+  let allImages = [];
+  document.querySelectorAll('.gallery img').forEach(img => {
+    allImages.push(img.src);
+  });
+  let currentIndex = 0;
+
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+
+  document.querySelectorAll('.gallery img').forEach(img => {
+    img.addEventListener('click', () => {
+      currentIndex = allImages.indexOf(img.src);
+      lightboxImg.src = img.src;
+      lightbox.style.display = "flex";
+    });
+  });
+
+  document.getElementById("prev-img").onclick = (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+    lightboxImg.src = allImages[currentIndex];
+  };
+
+  document.getElementById("next-img").onclick = (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex + 1) % allImages.length;
+    lightboxImg.src = allImages[currentIndex];
+  };
+
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) lightbox.style.display = "none";
+  });
+
+  /* Schnee-System — unverändert */
+
+  const snowCanvas = document.getElementById("snowCanvas");
+  const groundCanvas = document.getElementById("groundCanvas");
+  const sctx = snowCanvas.getContext("2d");
+  const gctx = groundCanvas.getContext("2d");
+
+  function resize() {
+    snowCanvas.width = window.innerWidth;
+    snowCanvas.height = window.innerHeight;
+    groundCanvas.width = window.innerWidth;
+    groundCanvas.height = window.innerHeight;
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+
+  const GROUND_POINTS = 50;
+  let ground = new Array(GROUND_POINTS).fill(0);
+  let flakes = [];
+  let snowLevel = 2;
+
+  const levelNames = {
+    1: "Kein Schnee",
+    2: "A kleis Schneele",
+    3: "Schneegestöber",
+    4: "Schneesturm",
+    5: "Blizzard"
+  };
+
+  const intensity = {
+    1: {count: 0, size: 0},
+    2: {count: 1, size: 5},
+    3: {count: 2, size: 7},
+    4: {count: 6, size: 11},
+    5: {count: 10, size: 20}
+  };
+  let frameCounter = 0;
+  let drawToggle = 0;
+
+  function spawnFlakes() {
+    const i = intensity[snowLevel];
+    for (let n = 0; n < i.count; n++) {
+      flakes.push({
+        x: Math.random() * snowCanvas.width,
+        y: -10,
+        size: Math.random() * i.size + i.size / 2,
+        speed: Math.random() * 1 + 1,
+      });
+    }
+  }
+
+  function updateFlakes() {
+
+    flakes.forEach(f => {
+      f.y += f.speed * f.size * 0.9;
+
+      let idx = Math.floor(f.x / snowCanvas.width * GROUND_POINTS);
+      let g = ground[idx] || 0;
+
+      if (f.y > snowCanvas.height - g) {
+        let h = f.size * 0.22;
+        ground[idx] += h;
+
+        if (idx > 0) ground[idx - 1] += h * 0.4;
+        if (idx < GROUND_POINTS - 1) ground[idx + 1] += h * 0.4;
+
+        f.remove = true;
+      }
+    });
+
+    flakes = flakes.filter(f => !f.remove);
+
+    let highest = Math.max(...ground);
+
+    if (highest >= groundCanvas.height * 0.46) {
+      snowLevel = 1;
+      updateName();
+    }
+  }
+
+  function drawFlakes() {
+    sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+    sctx.fillStyle = "white";
+    sctx.beginPath();
+    flakes.forEach(f => {
+      sctx.moveTo(f.x + f.size, f.y);
+      sctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+    });
+    sctx.fill();
+  }
+
+  function drawGround() {
+    gctx.clearRect(0, 0, groundCanvas.width, groundCanvas.height);
+    gctx.fillStyle = "white";
+    gctx.beginPath();
+    gctx.moveTo(0, groundCanvas.height);
+    for (let i = 0; i < GROUND_POINTS; i++) {
+      let x = i / (GROUND_POINTS - 1) * groundCanvas.width;
+      let y = groundCanvas.height - ground[i];
+      gctx.lineTo(x, y);
+    }
+    gctx.lineTo(groundCanvas.width, groundCanvas.height);
+    gctx.fill();
+  }
+
+  function loop() {
+    frameCounter++;
+    drawToggle++;
+    if (frameCounter >= 10) {
+      spawnFlakes();
+      frameCounter = 0;
+    }
+    if (drawToggle % 2 === 0) {
+      updateFlakes();
+      drawFlakes();
+        drawGround();   // nur jedes 2. Frame
+    }
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+  const nameField = document.getElementById("snow-mode-name");
+
+  function updateName() {
+    nameField.textContent = levelNames[snowLevel];
+  }
+
+  updateName();
+
+  document.getElementById("plus").onclick = () => {
+    if (snowLevel < 5) {
+      snowLevel++;
+      updateName();
+    }
+  };
+  document.getElementById("minus").onclick = () => {
+    if (snowLevel > 1) {
+      snowLevel--;
+      updateName();
+    }
+  };
+  document.getElementById("clearSnow").onclick = () => {
+    ground.fill(0);
+  };
+
+  /* Schneeregler ein/ausklappen */
+  const controls = document.getElementById("controls");
+  const toggleBtn = document.getElementById("controls-toggle");
+  controls.classList.toggle("open", true);
+
+  toggleBtn.addEventListener("click", () => {
+
+    const isOpen = controls.classList.toggle("open");
+
+    if (isOpen) {
+      toggleBtn.textContent = "▼ Schneeregler";
+      toggleBtn.classList.remove("collapsed");
+    } else {
+      toggleBtn.textContent = "▲ Schneeregler";
+      toggleBtn.classList.add("collapsed");
+    }
+  });
+
+  /* Jahr-Buttons Klick-Navigation */
+  document.querySelectorAll('.year-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (target) {
+        window.scrollTo({
+          top: target.offsetTop - 100,
+          behavior: "smooth"
+        });
+      }
+    });
+  });
+
+  /* Aktiv-Hervorhebung beim Scrollen */
+  function updateActiveYear() {
+    let years = document.querySelectorAll('.year-btn');
+    let sections = [...years].map(btn => document.getElementById(btn.dataset.target));
+
+    let scrollPos = window.scrollY + 200;
+
+    years.forEach(btn => btn.classList.remove('active'));
+
+    for (let i = 0; i < sections.length; i++) {
+      let sec = sections[i];
+      if (sec.offsetTop <= scrollPos &&
+        sec.offsetTop + sec.clientHeight > scrollPos) {
+        years[i].classList.add('active');
+      }
+    }
+  }
+
+  window.addEventListener("scroll", updateActiveYear);
+  updateActiveYear();
+
+  /* SPA Navigation */
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+
+      // Seiten ausblenden
+      document.querySelectorAll('.spa-page')
+        .forEach(p => p.classList.remove('active'));
+
+      // Buttons resetten
+      document.querySelectorAll('.nav-btn')
+        .forEach(n => n.classList.remove('active'));
+
+      // Zielseite aktivieren
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.page).classList.add('active');
+
+      // Scroll nach oben
+      window.scrollTo({top: 0, behavior: "smooth"});
+    });
+  });
+
+</script>
 </body>
 </html>
